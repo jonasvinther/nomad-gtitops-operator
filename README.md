@@ -26,15 +26,16 @@ Usage:
   nomoperator bootstrap fs [path] [flags]
 
 Flags:
-      --base-dir string   Path to the base directory (default "./")
-      --delete            Enable delete missing jobs
-  -h, --help              help for fs
-      --path string       glob pattern relative to the base-dir (default "**/*.nomad")
-      --var-path string   var glob pattern relative to the base-dir (default "**/*.vars.yml")
-      --watch             Enable watch mode
+      --base-dir string         Path to the base directory (default "./")
+      --delete                  Enable delete missing jobs
+  -h, --help                    help for fs
+      --path string             glob pattern relative to the base-dir (default "**/*.nomad")
+      --var-env-prefix string   prefix used for environment variable replacement (default "env:")
+      --var-path string         var glob pattern relative to the base-dir (default "**/*.vars.yml")
+      --watch                   Enable watch mode
 
 Global Flags:
-  -a, --address string   Address of the Nomad server
+  -a, --address string          Address of the Nomad server
 ```
 
 Use it like this:
@@ -62,6 +63,7 @@ Flags:
       --ssh-key string                 SSH private key
       --url string                     git repository URL
       --username string                SSH username (default "git")
+      --var-env-prefix string          prefix used for environment variable replacement (default "env:")
       --var-path string                var glob pattern relative to the repository root (default "**/*.vars.yml")
       --watch                          Enable watch mode (default true)
 
@@ -158,11 +160,27 @@ EOF
 
 ## Variables
 
-Variables are yml files. All keys and values in items should be of type string.
+Variables are yaml files. All keys and values in items should be of type string.
 
 ```yaml
 path: nomad/jobs/jobname
 items:
   key1: "value1"
   key2: "value2"
+```
+
+To replace a value for items in the variable files by an environment variable, use the prefix defined in `--var-env-prefix` which defaults to `env:`.
+This allows you to safely store variables without exposing sensitive information.
+
+```yaml
+path: nomad/jobs/jobname
+items:
+  username: "john"
+  password: "env:PASSWORD"
+```
+
+You can use tools such as [dotenvx](https://dotenvx.com) to store encrypted environment variables. Then run nomoperator with dotenvx. Refer to the dotenvx documentation for more information.
+
+```bash
+dotenvx run -- nomoperator bootstrap fs --base-dir /path/to/base/dir --path jobs/*.nomad
 ```

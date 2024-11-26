@@ -15,16 +15,17 @@ import (
 )
 
 type gitFlags struct {
-	url         string
-	branch      string
-	path        string
-	var_path    string
-	username    string
-	password    string
-	sshkey      string
-	sshinsecure bool
-	watch       bool
-	delete      bool
+	url            string
+	branch         string
+	path           string
+	var_path       string
+	var_env_prefix string
+	username       string
+	password       string
+	sshkey         string
+	sshinsecure    bool
+	watch          bool
+	delete         bool
 }
 
 var gitArgs gitFlags
@@ -35,6 +36,7 @@ func init() {
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.branch, "branch", "main", "git branch")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "**/*.nomad", "glob pattern relative to the repository root")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.var_path, "var-path", "**/*.vars.yml", "var glob pattern relative to the repository root")
+	bootstrapGitCmd.Flags().StringVar(&fsArgs.var_env_prefix, "var-env-prefix", "env:", "prefix used for environment variable replacement")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "username", "git", "SSH username")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.password, "password", "", "SSH private key password")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
@@ -50,10 +52,11 @@ var bootstrapGitCmd = &cobra.Command{
 	// Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return reconcile.Run(reconcile.ReconcileOptions{
-			Path:    gitArgs.path,
-			VarPath: gitArgs.var_path,
-			Watch:   gitArgs.watch,
-			Delete:  gitArgs.delete,
+			Path:         gitArgs.path,
+			VarPath:      gitArgs.var_path,
+			VarEnvPrefix: fsArgs.var_env_prefix,
+			Watch:        gitArgs.watch,
+			Delete:       gitArgs.delete,
 			Fs: func() (billy.Filesystem, error) {
 				repositoryURL, err := url.Parse(gitArgs.url)
 				if err != nil {

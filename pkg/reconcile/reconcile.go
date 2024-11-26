@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -18,11 +19,12 @@ import (
 )
 
 type ReconcileOptions struct {
-	Path    string
-	VarPath string
-	Watch   bool
-	Delete  bool
-	Fs      func() (billy.Filesystem, error)
+	Path         string
+	VarPath      string
+	VarEnvPrefix string
+	Watch        bool
+	Delete       bool
+	Fs           func() (billy.Filesystem, error)
 }
 
 func Run(opts ReconcileOptions) error {
@@ -90,6 +92,20 @@ func Run(opts ReconcileOptions) error {
 
 			// Update variable
 			fmt.Printf("Updating vars [%s]\n", newVariable.Path)
+
+			if opts.VarEnvPrefix != "" {
+				// Update all items that prefix with VarEnvPrefix with environment variables.
+				// If the environment variable doesn't exist value will be set to empty string when updating the variable.
+				for key, value := range newVariable.Items {
+					if strings.HasPrefix(value, opts.VarEnvPrefix) {
+						envVar := strings.TrimPrefix(value, opts.VarEnvPrefix)
+						envValue := os.Getenv(envVar)
+						fmt.Printf("Updating vars [%s][%s] with environment variable [%s]\n", newVariable.Path, key, envVar)
+						newVariable.Items[key] = envValue
+					}
+				}
+			}
+
 			err = client.UpdateVariable(&newVariable)
 			if err != nil {
 				return err

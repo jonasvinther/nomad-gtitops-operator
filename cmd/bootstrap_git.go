@@ -19,6 +19,7 @@ type gitFlags struct {
 	branch      string
 	path        string
 	var_path    string
+	env_prefix  string
 	username    string
 	password    string
 	sshkey      string
@@ -35,6 +36,7 @@ func init() {
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.branch, "branch", "main", "git branch")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.path, "path", "**/*.nomad", "glob pattern relative to the repository root")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.var_path, "var-path", "**/*.vars.yml", "var glob pattern relative to the repository root")
+	bootstrapGitCmd.Flags().StringVar(&fsArgs.env_template, "env-template", "<<\\$env\\(([A-Z0-9_]+)\\)>>", "template used for environment variable replacement")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.username, "username", "git", "SSH username")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.password, "password", "", "SSH private key password")
 	bootstrapGitCmd.Flags().StringVar(&gitArgs.sshkey, "ssh-key", "", "SSH private key")
@@ -50,10 +52,11 @@ var bootstrapGitCmd = &cobra.Command{
 	// Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return reconcile.Run(reconcile.ReconcileOptions{
-			Path:    gitArgs.path,
-			VarPath: gitArgs.var_path,
-			Watch:   gitArgs.watch,
-			Delete:  gitArgs.delete,
+			Path:        gitArgs.path,
+			VarPath:     gitArgs.var_path,
+			EnvTemplate: fsArgs.env_template,
+			Watch:       gitArgs.watch,
+			Delete:      gitArgs.delete,
 			Fs: func() (billy.Filesystem, error) {
 				repositoryURL, err := url.Parse(gitArgs.url)
 				if err != nil {

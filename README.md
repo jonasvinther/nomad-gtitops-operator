@@ -26,16 +26,16 @@ Usage:
   nomoperator bootstrap fs [path] [flags]
 
 Flags:
-      --base-dir string         Path to the base directory (default "./")
-      --delete                  Enable delete missing jobs
-  -h, --help                    help for fs
-      --path string             glob pattern relative to the base-dir (default "**/*.nomad")
-      --var-env-prefix string   prefix used for environment variable replacement (default "env:")
-      --var-path string         var glob pattern relative to the base-dir (default "**/*.vars.yml")
-      --watch                   Enable watch mode
+      --base-dir string     Path to the base directory (default "./")
+      --delete              Enable delete missing jobs
+      --env-prefix string   prefix used for environment variable replacement (default "env:")
+  -h, --help                help for fs
+      --path string         glob pattern relative to the base-dir (default "**/*.nomad")
+      --var-path string     var glob pattern relative to the base-dir (default "**/*.vars.yml")
+      --watch               Enable watch mode
 
 Global Flags:
-  -a, --address string          Address of the Nomad server
+  -a, --address string   Address of the Nomad server
 ```
 
 Use it like this:
@@ -56,6 +56,7 @@ Usage:
 Flags:
       --branch string                  git branch (default "main")
       --delete                         Enable delete missing jobs (default true)
+      --env-prefix string              prefix used for environment variable replacement (default "env:")
   -h, --help                           help for git
       --password string                SSH private key password
       --path string                    glob pattern relative to the repository root (default "**/*.nomad")
@@ -63,7 +64,6 @@ Flags:
       --ssh-key string                 SSH private key
       --url string                     git repository URL
       --username string                SSH username (default "git")
-      --var-env-prefix string          prefix used for environment variable replacement (default "env:")
       --var-path string                var glob pattern relative to the repository root (default "**/*.vars.yml")
       --watch                          Enable watch mode (default true)
 
@@ -169,7 +169,7 @@ items:
   key2: "value2"
 ```
 
-To replace a value for items in the variable files by an environment variable, use the prefix defined in `--var-env-prefix` which defaults to `env:`.
+To replace a value for items in the variable files by an environment variable, use the prefix defined in `--env-prefix` which defaults to `env:`.
 This allows you to safely store variables without exposing sensitive information.
 
 ```yaml

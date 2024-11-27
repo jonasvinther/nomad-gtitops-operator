@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -19,12 +20,12 @@ import (
 )
 
 type ReconcileOptions struct {
-	Path      string
-	VarPath   string
-	EnvPrefix string
-	Watch     bool
-	Delete    bool
-	Fs        func() (billy.Filesystem, error)
+	Path        string
+	VarPath     string
+	EnvTemplate string
+	Watch       bool
+	Delete      bool
+	Fs          func() (billy.Filesystem, error)
 }
 
 func Run(opts ReconcileOptions) error {
@@ -93,15 +94,14 @@ func Run(opts ReconcileOptions) error {
 			// Update variable
 			fmt.Printf("Updating vars [%s]\n", newVariable.Path)
 
-			if opts.EnvPrefix != "" {
-				// Update all items that prefix with EnvPrefix with environment variables.
-				// If the environment variable doesn't exist, value will be set to empty string when updating the variable.
+			if opts.EnvTemplate != "" {
+				// Update variable items with environment variables
+				pattern := regexp.MustCompile(opts.EnvTemplate)
 				for key, value := range newVariable.Items {
-					if strings.HasPrefix(value, opts.EnvPrefix) {
-						envVar := strings.TrimPrefix(value, opts.EnvPrefix)
-						envValue := os.Getenv(envVar)
-						fmt.Printf("Updating vars [%s][%s] with environment variable [%s]\n", newVariable.Path, key, envVar)
-						newVariable.Items[key] = envValue
+					replaced, newValue := replaceTemplateVariables(value, pattern)
+					if replaced {
+						fmt.Printf("Updating vars [%s] [%s] with environment variable\n", newVariable.Path, key)
+						newVariable.Items[key] = newValue
 					}
 				}
 			}
@@ -265,4 +265,22 @@ func keys[K comparable, V any](m map[K]V) []K {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func replaceTemplateVariables(input string, pattern *regexp.Regexp) (bool, string) {
+	replaced := false
+
+	// Replace variables using the custom syntax
+	result := pattern.ReplaceAllStringFunc(input, func(match string) string {
+		replaced = true
+		// Extract variable name
+		name := pattern.FindStringSubmatch(match)[1]
+		// Get the environment variable value or use a default if not set
+		if value, exists := os.LookupEnv(name); exists {
+			return value
+		}
+		return "" // Default value if the variable is not found
+	})
+
+	return replaced, result
 }

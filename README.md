@@ -26,13 +26,13 @@ Usage:
   nomoperator bootstrap fs [path] [flags]
 
 Flags:
-      --base-dir string     Path to the base directory (default "./")
-      --delete              Enable delete missing jobs
-      --env-prefix string   prefix used for environment variable replacement (default "env:")
-  -h, --help                help for fs
-      --path string         glob pattern relative to the base-dir (default "**/*.nomad")
-      --var-path string     var glob pattern relative to the base-dir (default "**/*.vars.yml")
-      --watch               Enable watch mode
+      --base-dir string       Path to the base directory (default "./")
+      --delete                Enable delete missing jobs
+      --env-template string   template used for environment variable replacement (default "<<\\$env\\(([A-Z0-9_]+)\\)>>")
+  -h, --help                  help for fs
+      --path string           glob pattern relative to the base-dir (default "**/*.nomad")
+      --var-path string       var glob pattern relative to the base-dir (default "**/*.vars.yml")
+      --watch                 Enable watch mode
 
 Global Flags:
   -a, --address string   Address of the Nomad server
@@ -56,7 +56,7 @@ Usage:
 Flags:
       --branch string                  git branch (default "main")
       --delete                         Enable delete missing jobs (default true)
-      --env-prefix string              prefix used for environment variable replacement (default "env:")
+      --env-template string            template used for environment variable replacement (default "<<\\$env\\(([A-Z0-9_]+)\\)>>")
   -h, --help                           help for git
       --password string                SSH private key password
       --path string                    glob pattern relative to the repository root (default "**/*.nomad")
@@ -169,14 +169,13 @@ items:
   key2: "value2"
 ```
 
-To replace a value for items in the variable files by an environment variable, use the prefix defined in `--env-prefix` which defaults to `env:`.
-This allows you to safely store variables without exposing sensitive information.
+To replace a value for items in the variable files by an environment variable, use the prefix defined in `--env-template` which defaults to `<<$env(VARIABLE)>>`.
 
 ```yaml
 path: nomad/jobs/jobname
 items:
   username: "john"
-  password: "env:PASSWORD"
+  password: "<<$env(PASSWORD)>>"
 ```
 
 You can use tools such as [dotenvx](https://dotenvx.com) to store encrypted environment variables. Then run nomoperator with dotenvx. Refer to the dotenvx documentation for more information.
